@@ -30,7 +30,9 @@ public class NeuralNetwork {
     public void setNeuron(int layer, int index, Neuron neuron) {
         neurons.get(layer).set(index, neuron);
     }
-
+    public void setNeuron(int layer, int index, int val){
+            neurons.get(layer).get(index).setActivation(val);
+    }
     public void addNeuron(int layer, Neuron neuron) {
         if (layer >= neurons.size()) return;
         neurons.get(layer).add(neuron);
@@ -40,15 +42,22 @@ public class NeuralNetwork {
     public NeuralNetwork(int layers) {
        neurons = new java.util.ArrayList<>();
        //The plus one is there for target neurons for testing
-       for (int i = 0; i < layers+1; i++) neurons.add(new java.util.ArrayList<>());
+       for (int i = 0; i < layers; i++) neurons.add(new java.util.ArrayList<>());
     }
 
     public Weights getWeights() {
         return weights;
     }
+
     public void setWeights(Weights weights) {
         this.weights = weights;
     }
+
+    //method to change particular weight
+    public void setWeight(int layer, int neuron1, int neuron2, float weight) {
+        weights.setWeight(layer, neuron1, neuron2, weight);
+    }
+
 
     public void clearInput(){
         for(int i = 0; i<neurons.getFirst().size(); ++i){

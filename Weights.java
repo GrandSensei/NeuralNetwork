@@ -18,6 +18,12 @@ public class Weights {
       weights.get(x).get(y).set(z, weight);
    }
 
+   public void changeWeight(int layer, int neuron1, int neuron2 , float val){
+       float w = weights.get(layer).get(neuron1).get(neuron2) -val;
+       weights.get(layer).get(neuron1).set(neuron2,w);
+
+   }
+
    public void addWeight(int layer, int neuron1,float val){
        weights.get(layer).get(neuron1).add(val);
    }

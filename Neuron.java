@@ -21,6 +21,7 @@ public class Neuron {
     }
     public void setVal(float val) {
         this.val = val;
+        activate(val);
     }
     public float getActivation() {return activation;}
     public void setActivation(float activatedValue){ this.activation=activatedValue;}
@@ -38,5 +39,12 @@ public class Neuron {
         this.val = val;
         this.activation = (float)(1 /(1+Math.exp(-val)));
     }
+
+    public float getSigmoidDerivative(){
+
+        return (this.activation * (1 - this.activation));
+    }
+
+    // include RELU at some point
 
 }
