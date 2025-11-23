@@ -4,55 +4,66 @@ public class main {
 
 
     public static void main(String[] args) throws Exception {
-        System.out.println("Starting Neural Network...");
+
 
         // 1. LOAD DATA
-        // Replace this path with the actual location on your computer!
+        String path = "digit-recognizer/train.csv";
+        System.out.println("Loading data...");
+
+        float[][] data = ExcelParse.loadData(path, 40000);
+
+        System.out.println("Data loaded. Rows: " + data.length);
+        System.out.println("Data loaded. Columns: " + data[0].length);
+
+        //2. TEST
+        System.out.println("Starting Neural Network...");
+        System.out.println("Starting Testing...");
+        NeuralEngine testEngine = NeuralEngine.loadModel("model.bin");
+        testEngine.test(data);
+
+
+    }
+
+    public static void createModel() throws Exception {
+        // 1. LOAD DATA
         String path = "digit-recognizer/train.csv";
 
 
-
-        System.out.println("Loading data...");
-        // Let's load only 5000 rows first to test if it works quickly
-        float[][] data = ExcelParse.loadData(path, 40000);
-
         float[][] trainData = new float[20000][];
         float[][] testData = new float[20000][];
+
+        float[][] data = ExcelParse.loadData(path, 40000);
+
 
         // Copy first 20000
         System.arraycopy(data, 0, trainData, 0, 20000);
         // Copy remaining 20000
         System.arraycopy(data, 20000, testData , 0, 20000);
 
-        System.out.println("Data loaded. Rows: " + data.length);
+        System.out.println("Starting Neural Network...");
 
-//        // 2. INITIALIZE ENGINE
-//        NeuralEngine engine = new NeuralEngine();
-//
-//
-//
-//        // 3. FEED DATA TO ENGINE
-//        engine.setTrainingData(trainData);
-//
-//
-//        // 4. TRAIN
-//        System.out.println("Beginning Training...");
-//        long startTime = System.currentTimeMillis();
-//        //I went for 50 epochs that took about 425 seconds on my M3 MacBook Pro...
-//        engine.train(50);
-//
-//        long endTime = System.currentTimeMillis();
-//        System.out.println("Training finished in " + (endTime - startTime) / 1000 + " seconds.");
-//        // 4. SAVE THE MODEL
-//        engine.saveModel("model.bin");
-//
 
-        // 5. TEST
-        System.out.println("Starting Testing...");
+        System.out.println("Loading data...");
 
-        NeuralEngine testEngine = NeuralEngine.loadModel("model.bin");
-        testEngine.test(testData);
 
+        //2. INITIALIZE ENGINE
+        NeuralEngine engine = new NeuralEngine();
+
+        // 3. FEED DATA TO ENGINE
+        engine.setTrainingData(data);
+        engine.setNeuralNetwork(0);
+
+
+
+        // 4. TRAIN
+        System.out.println("Beginning Training...");
+        long startTime = System.currentTimeMillis();
+        //I went for 50 epochs that took about 425 seconds on my M3 MacBook Pro. CPU is drastically slow.
+        engine.train(50);
+        long endTime = System.currentTimeMillis();
+        System.out.println("Training finished in " + (endTime - startTime) / 1000 + " seconds.");
+        // 4. SAVE THE MODEL
+        engine.saveModel("model.bin");
 
     }
 }

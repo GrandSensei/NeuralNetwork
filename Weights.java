@@ -14,6 +14,8 @@ public class Weights {
    public float getWeight(int x, int y, int z) {
        return weights.get(x).get(y).get(z);
    }
+
+
    public void setWeight(int x, int y, int z, float weight) {
       weights.get(x).get(y).set(z, weight);
    }
@@ -31,6 +33,7 @@ public class Weights {
    public void addMidLayer(){
        weights.add(new ArrayList<>());
    }
+
    public List<Float> getWeightsOfNeuron(int layer, int neuron1) {
        return weights.get(layer).get(neuron1);
    }
@@ -39,12 +42,6 @@ public class Weights {
        return weights.get(layer);
    }
 
-    public void randomizeWeights() {
-        for (List<List<Float>> weight : weights) {
-            for (List<Float> floats : weight) {
-                floats.replaceAll(w -> (float) Math.random() * 2 - 1);
-            }
-        }
-    }
+
 
 }

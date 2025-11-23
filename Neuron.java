@@ -13,17 +13,21 @@ public class Neuron {
     public float getVal() {
         return val;
     }
+
     public float getBias() {
         return bias;
     }
+
     public void setBias(float bias) {
         this.bias = bias;
     }
+
     public void setVal(float val) {
         this.val = val;
         activate(val);
     }
     public float getActivation() {return activation;}
+
     public void setActivation(float activatedValue){ this.activation=activatedValue;}
     public Neuron() {
         setVal(0);
@@ -45,6 +49,5 @@ public class Neuron {
         return (this.activation * (1 - this.activation));
     }
 
-    // include RELU at some point
 
 }

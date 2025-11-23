@@ -20,14 +20,8 @@ public class NeuralEngine {
     private final float LEARNING_RATE = 0.01f;
     private final int STANDARD =0;
 
-
-
-    //TIME TO DESTROY THE TEST LAYERS AND INSTEAD USE AN ARRAY
-
-
     public NeuralEngine() {
         neuralNetwork = new NeuralNetwork(LAYERS);
-
         // This creates a 4 layer neural network with one input layer, 2 hidden layers and one output layer.
         setLayer(0,INPUT_SIZE);
         setLayer(1,128);
@@ -39,7 +33,7 @@ public class NeuralEngine {
     }
 
     public NeuralEngine(int layers) {
-        if(layers == STANDARD) setNeuralNetwork(4);
+        if(layers == STANDARD) setNeuralNetwork(LAYERS);
         else  setNeuralNetwork(layers);
     }
 
@@ -62,26 +56,21 @@ public class NeuralEngine {
     }
 
 
-//    public void addLayer() {
-//        neuralNetwork.getNeurons().add(new ArrayList<>());
-//    }
 
-    //works imo
-    //use this when building custom network
+    //use this when building a custom network
     public void setLayer(int layerIndex, int noOfNeurons) {
         if(layerIndex>=neuralNetwork.getNeurons().size()) return;
+        //Clear existing neurons in the layer if any
+        neuralNetwork.getNeurons().get(layerIndex).clear();
         for(int z=0; z<noOfNeurons;++z) {
             Neuron neuron = new Neuron();
             neuralNetwork.addNeuron(layerIndex,neuron);
-            System.out.println("Adding neuron with bias: "+neuron.getBias() + " to layer "  + layerIndex);
+           // System.out.println("Adding neuron with bias: "+neuron.getBias() + " to layer "  + layerIndex);
         }
-        System.out.println("number of neurons in layer " + layerIndex + " is " + noOfNeurons);
+      //  System.out.println("number of neurons in layer " + layerIndex + " is " + noOfNeurons);
     }
 
-    //We have a neural network that can make 2 hidden layers along with an input and output layer.
-    //the next step is weights
 
-    //this should initialize the weights and set them to 0. right??
     public void setWeights(){
         // initialize the weights
         neuralNetwork.setWeights(new Weights(new java.util.ArrayList<>()));
@@ -105,6 +94,7 @@ public class NeuralEngine {
                 double range = 1.0 / Math.sqrt(neuronsInCurrentLayer);
                 //for every neuron in the next layer
                 for(int neuronTo=0;neuronTo<neuronsInNextLayer;++neuronTo){
+                    //randomize the weights between -range and range
                     float weight = (float) (Math.random()*2*range-range);
                     connections.add(weight);
                 }
@@ -112,8 +102,6 @@ public class NeuralEngine {
             }
         }
 
-        //after this we randomize the weights
-        //neuralNetwork.getWeights().randomizeWeights();
     }
 
 
@@ -149,7 +137,9 @@ public class NeuralEngine {
 
 
 
-    //populate the inputs!
+
+    //turns out it is simpler to just do it in the training method itself here. I will switch this in python one though.
+//populate the inputs!
     public void setInput(float[] inputs){
         if(inputs.length!=INPUT_SIZE) return;
         for(int i=0;i<INPUT_SIZE;++i){
@@ -164,27 +154,26 @@ public class NeuralEngine {
 
     public void train(int epochs){
 
-//        // initialize the weights that are needed to be modified
-//        modelWeights= new Weights(new java.util.ArrayList<>());
-for (int e = 0; e < epochs; e++) {
-    int iterations = trainingData.length / BATCH_SIZE;
-    //no of the partitions you made of the data
-    for (int i = 0; i < iterations; ++i) {
+        // initialize the weights that are needed to be modified
+    for (int e = 0; e < epochs; e++) {
+        int iterations = trainingData.length / BATCH_SIZE;
+        //no of the partitions you made of the data
+        for (int i = 0; i < iterations; ++i) {
 
 
-        float cost = 0;
-        // the data in the given partition
-        int start = i * BATCH_SIZE;
-        //first populate the inputs
-        for (int j = start; j < start + BATCH_SIZE; ++j) {
-            float[] inputs = trainingData[j];
-            List<Neuron> inputLayer = neuralNetwork.getNeurons().getFirst();
-            // k = 1 as the 0th index is the label
-            for (int k = 1; k < trainingData[j].length; ++k) {
-                //set the input layer of neurons
-                float input = inputs[k];
-                inputLayer.get(k - 1).setVal(input);
-            }
+            float cost = 0;
+            // the data in the given partition
+            int start = i * BATCH_SIZE;
+            //first populate the inputs
+            for (int j = start; j < start + BATCH_SIZE; ++j) {
+                float[] inputs = trainingData[j];
+                List<Neuron> inputLayer = neuralNetwork.getNeurons().getFirst();
+                // k = 1 as the 0th index is the label
+                for (int k = 1; k < trainingData[j].length; ++k) {
+                    //set the input layer of neurons
+                    float input = inputs[k];
+                    inputLayer.get(k - 1).setVal(input);
+                }
 
             // do the forward pass once you have set the inputs
             forwardPass();
@@ -259,7 +248,7 @@ for (int e = 0; e < epochs; e++) {
                 inputLayer.get(k-1).setActivation(row[k]);
             }
 
-            // 2. FORWARD PASS ONLY (No Backprop!)
+            // 2. FORWARD PASS ONLY (No Backprop)
             forwardPass();
 
             // 3. CHECK ANSWER
@@ -283,10 +272,6 @@ for (int e = 0; e < epochs; e++) {
         System.out.println("Correct: " + correctGuesses + "/" + testData.length);
         System.out.println("----------------------------------");
     }
-
-
-    public void modifyWeights(){}
-
 
     public void backpropagate(float[] targets){
             List<List<Neuron>> layers = neuralNetwork.getNeurons();
@@ -353,65 +338,6 @@ for (int e = 0; e < epochs; e++) {
     }
 
 
-    @Deprecated
-    public void backpropagation(int trainingDataIndex, float learningRate){
-        float[] trainingDataPoint = trainingData[trainingDataIndex];
-        //the 0th index of this is the label, this is how we will fill up the initial target value.
-        //Filling up the initial target layer using the labels
-        for(int x=0;x<OUTPUT_SIZE;++x){
-            if (x==trainingDataPoint[0]) neuralNetwork.getNeuron(4,x).setActivation(1);
-            else neuralNetwork.getNeuron(4,x).setActivation(0);
-        }
-
-        //instead of the above mess use a
-        //gets me into the middle layer between the targeted layer and its previous layer
-        for(int midLayer=0;midLayer<neuralNetwork.getNeurons().size()-2;++midLayer){
-            for(int neuronPreviousLayer=0;neuronPreviousLayer<neuralNetwork.getNeurons().get(midLayer+1).size();++neuronPreviousLayer){
-                for (int neuronTargetLayer=0;neuronTargetLayer<neuralNetwork.getNeurons().get(midLayer).size();++neuronTargetLayer){
-                    //neuron in the target layer will always have the same no of inputs as the targeted layer
-                    float neuronInTargetLayer= neuralNetwork.getNeurons().getLast().get(neuronTargetLayer).getActivation();
-                    float neuronInTargetedLayer= neuralNetwork.getNeurons().get(midLayer+1).get(neuronTargetLayer).getActivation();
-                    float neuronInPreviousLayer= neuralNetwork.getNeuron(midLayer,neuronPreviousLayer).getActivation();
-                    float sigDerivative= (float) (Math.exp(-neuralNetwork.getNeuron(midLayer+1,neuronTargetLayer).getVal())/(1+Math.exp(-neuralNetwork.getNeuron(midLayer+1,neuronTargetLayer).getVal())));
-                    float gradient= (neuronInTargetedLayer- neuronInTargetLayer) * neuronInPreviousLayer*sigDerivative*learningRate;
-                    neuralNetwork.getWeights().setWeight(midLayer,neuronTargetLayer,neuronPreviousLayer,gradient);
-                }
-            }
-
-            //now let's empty the target layer and fill it up with new inputs
-            if(neuralNetwork.getNeurons().get(midLayer+1).size()> neuralNetwork.getNeurons().getLast().size()){
-                //add the extra neurons
-                for (int x=0;x< neuralNetwork.getNeurons().getLast().size()- neuralNetwork.getNeurons().get(midLayer+1).size();++x){
-                    //adds a new neuron to the target layer
-                    neuralNetwork.addNeuron(neuralNetwork.getNeurons().size(),new Neuron());
-                }
-            }else if(neuralNetwork.getNeurons().get(midLayer+1).size()< neuralNetwork.getNeurons().getLast().size()){
-                //remove the extra neurons
-                for (int x=0;x< neuralNetwork.getNeurons().get(midLayer+1).size()- neuralNetwork.getNeurons().getLast().size();++x){
-                    //removes a neuron from the target layer
-                    neuralNetwork.getNeurons().removeLast();
-                }
-            }
-
-            // over here I should be adding the neurons of the next layer as it goes back..
-            for (int x=0;x< neuralNetwork.getNeurons().getLast().size();++x){
-                neuralNetwork.setNeuron(neuralNetwork.getNeurons().size()-1,x,0);
-            }
-        }
-
-
-
-    }
-
-    //method to collect an array of input from the training data
-    public float[] getDatapoint(int index){
-        return trainingData[index];
-    }
-
-    //methods to gather training data>
-
-
-
 
     //the inputs range is not -1,1 so be careful to parse that later
 
@@ -443,22 +369,11 @@ for (int e = 0; e < epochs; e++) {
 
 
 
-
-
     public void setTrainingData(float[][] trainingData) {
         this.trainingData = trainingData;
     }
 
-    public void setTestData(List<List<Float>> testData) {
-        this.testData = testData;
-    }
 
-    public float[][] getTrainingData() {
-        return trainingData;
-    }
-    public List<List<Float>> getTestData() {
-        return testData;
-    }
 
 
 
@@ -500,6 +415,7 @@ for (int e = 0; e < epochs; e++) {
         }
     }
 
+    // LOADING THE MODEL AFTER TRAINING
     public static NeuralEngine loadModel(String filePath) throws IOException {
         System.out.println("Loading model from " + filePath);
 
