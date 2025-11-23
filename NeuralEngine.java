@@ -1,3 +1,4 @@
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class NeuralEngine {
     }
 
     public NeuralEngine(int layers) {
-        if(layers == STANDARD) setNeuralNetwork(3);
+        if(layers == STANDARD) setNeuralNetwork(4);
         else  setNeuralNetwork(layers);
     }
 
@@ -460,6 +461,94 @@ for (int e = 0; e < epochs; e++) {
     }
 
 
+
+    // SAVING THE MODEL AFTER TRAINING
+
+    public void saveModel(String filePath) throws FileNotFoundException {
+        System.out.println("Saving model to " + filePath);
+        try(DataOutputStream dos = new DataOutputStream(new FileOutputStream(filePath))){
+
+            // start storing number of layers
+            List<List<Neuron>> layers = neuralNetwork.getNeurons();
+            dos.writeInt(layers.size());
+
+            for (List<Neuron> layer : layers) {
+                dos.writeInt(layer.size());
+                for (Neuron neuron : layer) {
+                    //we only save the bias.
+                    dos.writeFloat(neuron.getBias());
+                }
+            }
+
+            Weights weights = neuralNetwork.getWeights();
+
+            for (int x=0;x<layers.size()-1;++x){
+                int currentLayerSize = layers.get(x).size();
+                int nextLayerSize = layers.get(x+1).size();
+                for (int from=0;from<currentLayerSize;++from){
+                    for (int to=0;to<nextLayerSize;++to){
+                        dos.writeFloat(weights.getWeight(x,from,to));
+                    }
+                }
+            }
+
+            System.out.println("Model saved!!");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error saving model");
+        }
+    }
+
+    public static NeuralEngine loadModel(String filePath) throws IOException {
+        System.out.println("Loading model from " + filePath);
+
+
+        try(DataInputStream dis = new DataInputStream(new FileInputStream(filePath))){
+            //the first thing we read is the number of layers
+            int numberOfLayers = dis.readInt();
+
+            //HERE THERE IS REDUNDANCY WITH THE CONSTRUCTOR BECAUSE WE ARE CREATING THE NEURAL NETWORK HERE
+            //MAKE BETTER CONSTRUCTORS...
+            NeuralEngine engine = new NeuralEngine(0);
+            engine.neuralNetwork= new NeuralNetwork(numberOfLayers);
+
+            // Do the biases !
+            for (int x=0;x<numberOfLayers;++x){
+                int numberOfNeurons = dis.readInt();
+
+                // create the layer
+                engine.setLayer(x,numberOfNeurons);
+                //remind myself to create an empty constructor for this to prevent redunduncy
+                for (int y=0;y<numberOfNeurons;++y){
+                    float bias = dis.readFloat();
+                    engine.neuralNetwork.getNeuron(x,y).setBias(bias);
+                }
+            }
+
+            //Now focus on the weights
+
+            engine.setWeights();
+
+            //override these from the file
+            Weights weights = engine.neuralNetwork.getWeights();
+            List<List<Neuron>> layers = engine.neuralNetwork.getNeurons();
+            for (int x=0;x<numberOfLayers-1;++x){
+                int currentLayerSize = layers.get(x).size();
+                int nextLayerSize = layers.get(x+1).size();
+                for (int from=0;from<currentLayerSize;++from){
+                    for (int to=0;to<nextLayerSize;++to){
+                        float weight = dis.readFloat();
+                        weights.setWeight(x,from,to,weight);
+                    }
+                }
+            }
+
+            System.out.println("Model loaded!!");
+            return engine;
+        }
+
+    }
 
 
 }
